@@ -66,7 +66,6 @@ class DataProcessor:
 
         return self.data
 
-# Example usage
 # data_path = r"F:\ITI GP - Giza Systems\First Email\02_Task_Description\02_Datasets\Regression\Univariate\Real\571.csv"
 data_path = r'F:\ITI GP - Giza Systems\First Email\02_Task_Description\02_Datasets\Regression\Multivariate\Real\1005.csv'
 
