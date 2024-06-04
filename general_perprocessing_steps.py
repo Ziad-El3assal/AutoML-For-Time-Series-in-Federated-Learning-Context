@@ -72,8 +72,7 @@ data_path = r'F:\ITI GP - Giza Systems\First Email\02_Task_Description\02_Datase
 processor = DataProcessor(data_path)
 data_type, data = processor.load_check_data()
 preprocessed_data = processor.general_processing()
-
-# To check
+# To check the function of Multivariate is working   
 print(preprocessed_data.isnull().sum())
 print(preprocessed_data.head())
 print(preprocessed_data['Timestamp'].dtype)
