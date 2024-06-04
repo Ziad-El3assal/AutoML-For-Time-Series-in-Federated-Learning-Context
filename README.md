@@ -5,7 +5,7 @@ training machine learning models on decentralized data. It allows
 training on data residing on user devices, addressing privacy
 concerns and data security limitations. However, selecting the
 optimal model architecture and hyperparameters for each FL task
-can be a significant challenge
+can be a significant challenge.
 </pre>
 
 • Why Federated Learning?
