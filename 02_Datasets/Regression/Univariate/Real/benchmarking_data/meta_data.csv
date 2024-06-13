@@ -1,0 +1,32 @@
+id,name,link,timestamp_col, value_col
+600.csv,room_temperature_hourly,AutoML/datasets/benchmarking_data/600.csv,Timestamp,Room_Temperature
+601.csv,daily_BOE-XUDLERD,AutoML/datasets/benchmarking_data/601.csv,Timestamp,Value
+602.csv,daily_CrudeOil,AutoML/datasets/benchmarking_data/602.csv,Timestamp,Price
+603.csv,SunSpotDaily,AutoML/datasets/benchmarking_data/603.csv,Timestamp,SunSpot
+604.csv,USBirthsDaily,AutoML/datasets/benchmarking_data/604.csv,Timestamp,USBirths
+605.csv,daily-min-temperatures,AutoML/datasets/benchmarking_data/605.csv,Timestamp,Temp
+606.csv,nasdaq_Central_Bank_of_Brazil_Base_Financial_Rate_daily,AutoML/datasets/benchmarking_data/606.csv,Timestamp,Value
+607.csv,nasdaq_Central_Bank_of_Brazil_Pr_ rata_base_financial_rate_daily,AutoML/datasets/benchmarking_data/607.csv,Timestamp,Value
+608.csv,nasdaq_Central_Bank_of_Brazil_Saving_deposits_daily,AutoML/datasets/benchmarking_data/608.csv,Timestamp,Value
+609.csv,nasdaq_Central_Bank_of_Brazil_Saving_deposits1_daily,AutoML/datasets/benchmarking_data/609.csv,Timestamp,Value
+610.csv,nasdaq_Central_Bank_of_Brazil_Saving_deposits2_daily,AutoML/datasets/benchmarking_data/610.csv,Timestamp,Value
+611.csv,nasdaq_EIA_PET_RWTC_Daily,AutoML/datasets/benchmarking_data/611.csv,Timestamp,Value
+612.csv,nasdaq_WIKI_AAPL_price_daily,AutoML/datasets/benchmarking_data/612.csv,Timestamp,Close
+613.csv,weekly_Gasoline_price,AutoML/datasets/benchmarking_data/613.csv,Timestamp,Gas Price
+614.csv,Monthly_beerWine_sales,AutoML/datasets/benchmarking_data/614.csv,Timestamp,beer
+615.csv,monthly_brent_spot_price,AutoML/datasets/benchmarking_data/615.csv,Timestamp,oil_price_dollar
+616.csv,monthly_CO2_PPM,AutoML/datasets/benchmarking_data/616.csv,Timestamp,CO2 ppm
+617.csv,Monthly_electric_production,AutoML/datasets/benchmarking_data/617.csv,Timestamp,Value
+618.csv,Monthly_miles_traveled,AutoML/datasets/benchmarking_data/618.csv,Timestamp,TRFVOLUSM227NFWA
+619.csv,monthly_RetailFood,AutoML/datasets/benchmarking_data/619.csv,Timestamp,Food
+620.csv,monthly_sales_df,AutoML/datasets/benchmarking_data/620.csv,Timestamp,Sales
+621.csv,monthly_water_consumption,AutoML/datasets/benchmarking_data/621.csv,Timestamp,water_consumption
+622.csv,monthly_water_price,AutoML/datasets/benchmarking_data/622.csv,Timestamp,WTI_Spot_Price
+623.csv,monthly-crude-oil-price,AutoML/datasets/benchmarking_data/623.csv,Timestamp,crude_oil_price
+624.csv,nasdaq_Central_Bank_of_Brazil_Prorata_reference_rate_monthly,AutoML/datasets/benchmarking_data/624.csv,Timestamp,Value
+625.csv,nasdaq_Central_Bank_of_Brazil_Referential_rate_monthly,AutoML/datasets/benchmarking_data/625.csv,Timestamp,Value
+626.csv,nasdaq_Central_Bank_of_Brazil_Saving_deposits3_Monthly,AutoML/datasets/benchmarking_data/626.csv,Timestamp,Value
+627.csv,nasdaq_EIA_PET_RWTC_D_monthly,AutoML/datasets/benchmarking_data/627.csv,Timestamp,Value
+628.csv,nasdaq_electric_energy_consumption_Monthly,AutoML/datasets/benchmarking_data/628.csv,Timestamp,Value
+629.csv,nasdaq_OIL_TPSCKL_NLD_Monthly,AutoML/datasets/benchmarking_data/629.csv,Timestamp,Value
+630.csv,nasdaq_WIKI_AAPL_price_monthly,AutoML/datasets/benchmarking_data/630.csv,Timestamp,Close
