@@ -5,7 +5,6 @@ from sklearn.base import BaseEstimator, TransformerMixin
 from prophet import Prophet
 from statsmodels.tsa.stattools import adfuller
 from client_utils.utils import detect_timeseries_type
-import os
 
 
 class TrendExtractor(BaseEstimator, TransformerMixin):
@@ -23,8 +22,15 @@ class TrendExtractor(BaseEstimator, TransformerMixin):
         :param series_df: series to check the type of its trend
         :returns: str defines series type (linear or logistic)
         """
+        # Check if all values in the series are the same
+        if series_df.y.nunique() == 1:
+            return "flat"
+
+        # Perform the Augmented Dickey-Fuller test
         adf_result = adfuller(series_df)
         p_value = adf_result[1]
+
+        # Determine the trend type based on the p-value
         if p_value < 0.05:
             return "linear"
         else:
@@ -45,7 +51,7 @@ class TrendExtractor(BaseEstimator, TransformerMixin):
                                    growth=self.trend_type)
         self.trend_model.fit(newX)
         trend = self.trend_model.predict(newX)['trend']
-        X[f'{self.feature}_trend'] = trend
+        X[f'{self.feature}_trend'] = trend.values
         return X
 
 
@@ -119,32 +125,53 @@ class SeasonalityExtractor(BaseEstimator, TransformerMixin):
         all_df = pd.concat([data, df_added], axis=1)
         return all_df
 
+class FeaturesEngineeringPipeline:
+    def __init__(self, features, columns_types):
+        self.features = features
+        self.columns_types = columns_types
+        self.fitted_pipelines = {}
 
-def features_engineering_pipeline(data, features: dict, columns_types):
-    final_df = []
-    for feature in features.keys():
-        seasonality = features[feature]['seasonality']
-        optimal_lags = features[feature]['optimal_lags']
-        # Define the pipeline
-        pipeline = Pipeline([
-            ('trend', TrendExtractor(feature)),
-            ('time_features', TimeFeaturesExtractor(feature)),
-            ('lags', LagFeaturesExtractor(feature, optimal_lags=optimal_lags)),  # Change the number of lags as needed
-            ('seasonality', SeasonalityExtractor(feature, freq=seasonality))
+    def fit_transform(self, train_data):
+        self.train_df = []
+        for feature, params in self.features.items():
+            seasonality = params['seasonality']
+            optimal_lags = params['optimal_lags']
+            # Define the pipeline
+            pipeline = Pipeline([
+                ('trend', TrendExtractor(feature)),
+                ('time_features', TimeFeaturesExtractor(feature)),
+                ('lags', LagFeaturesExtractor(feature, optimal_lags=optimal_lags)),
+                ('seasonality', SeasonalityExtractor(feature, freq=seasonality))
+            ])
+            # Fit and transform the data
+            train_data_copy = train_data[[self.columns_types["timestamp"], feature]].copy()
+            seasonality_type = detect_timeseries_type(train_data_copy, feature)
+            train_reg = pipeline.fit_transform(train_data_copy, seasonality_type)
+            train_reg.reset_index(inplace=True)
+            self.train_df.append(train_reg)
+            # Store the fitted pipeline
+            self.fitted_pipelines[feature] = pipeline
+        # Append categorical columns
+        train_cat_data = train_data[self.columns_types['categorical']].copy().reset_index(drop=True)
+        self.train_df.append(train_cat_data)
+        self.train_df = pd.concat(self.train_df, axis=1)
+        self.train_df = self.train_df.loc[:, ~self.train_df.columns.duplicated()].copy().dropna().set_index('Timestamp')
+        return self.train_df
 
-        ])
-        # Fit and transform the data
-        input_data = data[[columns_types["timestamp"], feature]].copy()
-        seasonality_type = detect_timeseries_type(data, feature)
-        X_reg = pipeline.fit_transform(input_data, seasonality_type)
-        X_reg.reset_index(inplace=True)
-        final_df.append(X_reg)
-    # Append categorical columns
-    cat_data = data[columns_types['categorical']].copy().reset_index(drop=True)
-    final_df.append(cat_data)
-    final_df = pd.concat(final_df, axis=1)
-    final_df = final_df.loc[:, ~final_df.columns.duplicated()].copy()
-    final_df = final_df.dropna()
-    data_path = os.path.join('./output', "regression_data.csv")
-    final_df.to_csv(data_path)
-    return final_df
+    def transform(self, test_data):
+        self.test_df = []
+        for feature in self.features.keys():
+            # Retrieve the fitted pipeline
+            pipeline = self.fitted_pipelines[feature]
+            # Transform the test data using the fitted pipeline
+            test_data_copy = test_data[[self.columns_types["timestamp"], feature]].copy()
+            test_reg = pipeline.transform(test_data_copy)
+            test_reg.reset_index(inplace=True)
+            self.test_df.append(test_reg)
+        # Append categorical columns
+        test_cat_data = test_data[self.columns_types['categorical']].copy().reset_index(drop=True)
+        self.test_df.append(test_cat_data)
+        self.test_df = pd.concat(self.test_df, axis=1)
+        self.test_df = self.test_df.loc[:, ~self.test_df.columns.duplicated()].copy().dropna().set_index('Timestamp')
+        return self.test_df
+
