@@ -31,5 +31,10 @@ can be a significant challenge.
         ▪ Perform hyperparameter tuning on each client device to account for local data variations.
         ▪ Aggregate optimized hyperparameters from clients to the server for improved model performance.
 
+### You can run the server using the following command
+- Rememeber to rename the environment to `flowerTurtorial` to be updated -before puplishing-
+```bash
+run.bat number_clients Dataset_path
+```
 
 
