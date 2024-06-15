@@ -12,20 +12,20 @@ set number_clients=%1
 set DataPath=%2
 
 REM Activate the flowerTutorial environment for the data split step
-call conda activate flowerTutorial
+call conda activate C:\Users\Omar\anaconda3\envs\flowr6
 
 REM Run dataSetspliter.py with the given arguments
 python dataSetspliter.py %number_clients% %DataPath%
 timeout /t 15 /nobreak
 
 
-if errorlevel 1 (
-    echo Error running dataSetspliter.py
-    exit /b 1
-)
+@REM if errorlevel 1 (
+@REM     echo Error running dataSetspliter.py
+@REM     exit /b 1
+@REM )
 
 start "SERVER" cmd /k python server.py %number_clients%
-timeout /t 10 /nobreak
+@REM timeout /t 10 /nobreak
 
 
 REM Loop through the number of clients and run client.py for each one in a new command prompt, activating the flowerTutorial environment
