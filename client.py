@@ -19,6 +19,9 @@ class FlowerClient(fl.client.Client):
         self.server_address = server_address
         self.server_port = server_port
         self.raw_data = pd.read_csv(dataset_path)
+        
+        self.raw_data.rename({'timestamp':'Timestamp', 'value':'Target'},inplace=True, axis=1)
+        print(self.raw_data.columns)
         split_data = SplitData(data=self.raw_data, train_freq=0.9)
         self.raw_train_data, self.raw_test_data = split_data.train_test_split()
         read_preprocess_data = ReadPreprocessData()
