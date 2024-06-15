@@ -3,29 +3,30 @@ import json
 from client_utils.parameters_handler import ParametersHandler
 from client_utils.file_controller import FileController
 from client_utils.read_preprocess_data import ReadPreprocessData
-from client_utils.TrainTestSplits import TrainTestSplit
+from client_utils.split_data import SplitData
 from client_utils.ModelEnum import ModelEnum
 import pickle
-from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.metrics import mean_absolute_error
 from client_utils.utils import (get_model_weights, set_model_weights, parameters_to_weights,
                                 weights_to_parameters, get_best_model)
-import numpy as np
-import xgboost as xgb
+import pandas as pd
+from client_utils.split_data import SplitData
 import sys
-import os
-
-#activate the virtual environment
-os.system('activate flowerTutorial')
 
 class FlowerClient(fl.client.Client):
     def __init__(self, cid, server_address, server_port, dataset_path):
         self.cid = cid
         self.server_address = server_address
         self.server_port = server_port
-        #
-        self.raw_data, self.columns_types, self.dataset_type = ReadPreprocessData(dataset_path).preprocess_data()
-        #
-        self.parameters_handler = ParametersHandler(self.raw_data, self.columns_types, self.dataset_type)
+        self.raw_data = pd.read_csv(dataset_path)
+        split_data = SplitData(data=self.raw_data, train_freq=0.9)
+        self.raw_train_data, self.raw_test_data = split_data.train_test_split()
+        read_preprocess_data = ReadPreprocessData()
+        self.preprocessed_train_data, self.columns_types, self.dataset_type = read_preprocess_data.fit_transform(self.raw_train_data)
+        self.preprocessed_test_data = read_preprocess_data.transform(self.raw_test_data)
+        self.parameters_handler = ParametersHandler(preprocessed_train_data=self.preprocessed_train_data,
+                                                    preprocessed_test_data=self.preprocessed_test_data,
+                                                    columns_types=self.columns_types, dataset_type=self.dataset_type)
         self.file_controller = FileController()
         self.modelEnum = ModelEnum
         self.selected_features = []
@@ -49,7 +50,7 @@ class FlowerClient(fl.client.Client):
                     model = get_best_model()
                     metrics["model"] = str(model.__class__.__name__)
                     parameters = fl.common.Parameters(tensors=output,
-                                            tensor_type="weights")
+                                                      tensor_type="weights")
 
                 else:
                     features_bytes = json.dumps(output).encode("utf-8")
@@ -57,41 +58,41 @@ class FlowerClient(fl.client.Client):
                     parameters = fl.common.Parameters(tensors=[features_bytes], tensor_type="dict")
 
         elif parameters.parameters.tensor_type == "xgboost_weights":
-             self.model = get_best_model()
-             metrics["model"] = str(self.model.__class__.__name__)
-             global_model = []
-             for item in parameters.parameters.tensors:
+            self.model = get_best_model()
+            metrics["model"] = str(self.model.__class__.__name__)
+            global_model = []
+            for item in parameters.parameters.tensors:
                 global_model = bytearray(item)
-             self.model.load_model(global_model)
-             self.model= set_model_weights(self.model, global_model)
-             with open(f'model_{self.cid}.pkl', 'wb') as model_file:
+            self.model.load_model(global_model)
+            self.model = set_model_weights(self.model, global_model)
+            with open(f'model_{self.cid}.pkl', 'wb') as model_file:
                 pickle.dump(self.model, model_file)
-             output = get_model_weights(self.model)
-             parameters = fl.common.Parameters(tensors=[output],
-                                            tensor_type="weights")
+            output = get_model_weights(self.model)
+            parameters = fl.common.Parameters(tensors=[output],
+                                              tensor_type="weights")
         else:
             weights = parameters_to_weights(parameters)
             selected_features = self.file_controller.get_file(file_name="FinalSelectedFeatures")
-            train_data = self.file_controller.get_file("train_data","csv")
-            X,y = TrainTestSplit(data=train_data,
-                                 selected_features=selected_features,
-                                 target_column=self.columns_types['target']).train_test_split()
+            train_data = self.file_controller.get_file("train_data", "csv")
+            X, y = SplitData(data=train_data,
+                             selected_features=selected_features,
+                             target_column=self.columns_types['target']).x_y_split()
             self.model = get_best_model()
             metrics["model"] = str(self.model.__class__.__name__)
-            self.model= set_model_weights(self.model, weights)
-            self.model.fit(X,y)
+            self.model = set_model_weights(self.model, weights)
+            self.model.fit(X, y)
             with open(f'model_{self.cid}.pkl', 'wb') as model_file:
                 pickle.dump(self.model, model_file)
             parameters = get_model_weights(self.model)
             parameters = weights_to_parameters(parameters)
         status = fl.common.Status(code=fl.common.Code.OK, message="done")
         fit_res = fl.common.FitRes(
-                parameters=parameters,
-                num_examples=self.parameters_handler.data_length,
-                metrics=metrics,
-                # Set metrics to an empty dictionary since you don't want to return any metrics
-                status=status
-            )
+            parameters=parameters,
+            num_examples=self.parameters_handler.data_length,
+            metrics=metrics,
+            # Set metrics to an empty dictionary since you don't want to return any metrics
+            status=status
+        )
         return fit_res
 
     def evaluate(self, parameters):
@@ -102,32 +103,31 @@ class FlowerClient(fl.client.Client):
             for item in parameters.parameters.tensors:
                 global_model = bytearray(item)
             self.model.load_model(global_model)
-            self.model= set_model_weights(self.model, global_model)
-            test_data = self.file_controller.get_file("test_data","csv")
+            self.model = set_model_weights(self.model, global_model)
+            test_data = self.file_controller.get_file("test_data", "csv")
             selected_features = self.file_controller.get_file(file_name="FinalSelectedFeatures")
-            X_test,y_test = TrainTestSplit(data=test_data,
-                                               selected_features=selected_features,
-                                     target_column=self.columns_types['target']).train_test_split()
-            # dtest = xgb.DMatrix(X_test)
+            X_test, y_test = SplitData(data=test_data,
+                                       selected_features=selected_features,
+                                       target_column=self.columns_types['target']).x_y_split()
 
             # Make predictions
             y_pred = self.model.predict(X_test)
             loss = mean_absolute_error(y_test, y_pred)
             print(loss)
         else:
-            test_data = self.file_controller.get_file("test_data","csv")
-            train_data = self.file_controller.get_file("train_data","csv")
+            test_data = self.file_controller.get_file("test_data", "csv")
+            train_data = self.file_controller.get_file("train_data", "csv")
             selected_features = self.file_controller.get_file(file_name="FinalSelectedFeatures")
-            X,y = TrainTestSplit(data=train_data,
-                                     selected_features=selected_features,
-                                     target_column=self.columns_types['target']).train_test_split()
-            X_test,y_test = TrainTestSplit(data=test_data,
-                                               selected_features=selected_features,
-                                     target_column=self.columns_types['target']).train_test_split()
+            X, y = SplitData(data=train_data,
+                             selected_features=selected_features,
+                             target_column=self.columns_types['target']).x_y_split()
+            X_test, y_test = SplitData(data=test_data,
+                                       selected_features=selected_features,
+                                       target_column=self.columns_types['target']).x_y_split()
             weights = parameters_to_weights(parameters)
             model = get_best_model()
-            model.fit(X,y)
-            # model= set_model_weights(model, weights)
+            model.fit(X, y)
+            model = set_model_weights(model, weights)
             y_pred = model.predict(X_test)
             loss = mean_absolute_error(y_test, y_pred)
             print(loss)
