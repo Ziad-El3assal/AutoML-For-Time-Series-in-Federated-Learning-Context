@@ -7,6 +7,8 @@ from client_utils.file_controller import FileController
 from client_utils.split_data import SplitData
 from client_utils.ModelEnum import ModelEnum
 from client_utils.utils import get_model_weights
+from client_utils.fitModelFromCSV import FitModelsFromCSV
+import os
 
 class ParametersHandler:
     def __init__(self, preprocessed_train_data, preprocessed_test_data, columns_types, dataset_type):
@@ -19,6 +21,7 @@ class ParametersHandler:
         self.data_length = None
         self.selected_features = []
         self.modelEnum = ModelEnum
+        self.data_name=os.path.splitext(os.path.basename(os.getenv('DataPath')))[0]
 
     def get_output(self, parameters, data_list):
         server_round = data_list[0]['server_round']
@@ -54,7 +57,11 @@ class ParametersHandler:
             self.file_controller.save_file(self.selected_features, "FinalSelectedFeatures")
             output = FitCandidateModels(self.train_data, self.test_data, self.selected_features, models,
                                         target_column=self.columns_types['target']).fit_models()
+            print("output = ")
+            print(output)
             print(f"Round {server_round} Done: returned best performance of candidate models to the server")
+            FitModelsFromCSV(self.train_data, self.test_data, self.selected_features,"models_params.csv", target_column=self.columns_types['target'],dataset_name=self.data_name).fit_models()    
+
         elif server_round == 4:
             print(f"Round {server_round} started: Receive the best model over all clients and start to train the model")
             del data_list[0]['server_round']
