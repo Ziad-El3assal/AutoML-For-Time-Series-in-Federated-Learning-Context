@@ -172,7 +172,7 @@ class FitModelsFromCSV:
                 
                 model = self.create_model_from_string(model_string)
                 record_exists = self.file_controller.check_record_exists(self.dataset_name,self.curr_client, self.num_Clients, model_name,model.get_params(), self.file_name)
-                print(record_exists)
+                # print(record_exists)
                 if record_exists:
                   continue  
                 start_time = time.time()
