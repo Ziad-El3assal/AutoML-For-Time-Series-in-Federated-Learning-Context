@@ -35,7 +35,7 @@ class FitModelsFromCSV:
         self.curr_client = sys.argv[1]
         self.file_name = "results"
         self.file_controller = FileController()
-        self.num_Clients = os.getenv('number_clients')
+        self.num_Clients =int(os.getenv('number_clients'))
 
     @staticmethod
     def create_model_from_string(model_string):
@@ -171,7 +171,9 @@ class FitModelsFromCSV:
                 model_string = f"{model_name},{params_str}"
                 
                 model = self.create_model_from_string(model_string)
-                if self.file_controller.check_record_exists(self.dataset_name, self.num_Clients, model_name,model.get_params(), self.file_name):
+                record_exists = self.file_controller.check_record_exists(self.dataset_name,self.curr_client, self.num_Clients, model_name,model.get_params(), self.file_name)
+                print(record_exists)
+                if record_exists:
                   continue  
                 start_time = time.time()
                 model.fit(X_train, y_train)
@@ -190,7 +192,7 @@ class FitModelsFromCSV:
                     'time_taken': elapsed_time,
                     'dataset_name': self.dataset_name,
                     'num_clients': self.num_Clients,
-                    'id': f"{self.dataset_name}-{self.num_Clients}"
+                    'id': f"{self.dataset_name}-{self.curr_client}"
                 }
                 results.append(result)
 
