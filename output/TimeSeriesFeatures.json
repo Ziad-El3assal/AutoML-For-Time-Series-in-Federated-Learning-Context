@@ -1,2 +1,2 @@
 
-{"Target": {"seasonality": {"freq": [0.0007722007722007722, 0.003088803088803089], "spectrum": [5.174035330143994, 14.515435218384546]}, "stationary": 1, "optimal_lags": 20}}
+{"Target": {"seasonality": {"freq": [0.001072041166380789], "spectrum": [214.32752238630678]}, "stationary": 1, "optimal_lags": 6}}

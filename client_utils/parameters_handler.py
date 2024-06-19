@@ -8,6 +8,7 @@ from client_utils.split_data import SplitData
 from client_utils.ModelEnum import ModelEnum
 from client_utils.utils import get_model_weights
 from client_utils.fitModelFromCSV import FitModelsFromCSV
+from client_utils.aggFunc import aggCSV
 import os
 
 class ParametersHandler:
@@ -64,6 +65,7 @@ class ParametersHandler:
 
         elif server_round == 4:
             print(f"Round {server_round} started: Receive the best model over all clients and start to train the model")
+            aggCSV("output/results.csv","resultsAgg").fit()
             del data_list[0]['server_round']
             hyper_parameters = self.file_controller.get_file("hyperParameters")
             best_model = str(data_list[0]['best_model'])
