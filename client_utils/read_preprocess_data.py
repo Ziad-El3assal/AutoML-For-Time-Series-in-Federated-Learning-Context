@@ -63,6 +63,8 @@ class ReadPreprocessData:
         for col in self.numerical_columns + [self.columns_types["target"]]:
             self.data[col] = self.data[col].interpolate(method='linear')
 
+        self.data.dropna(inplace=True)    
+
     def detect_columns_types(self):
         num_samples = len(self.data)
         log_num_samples = log(num_samples)

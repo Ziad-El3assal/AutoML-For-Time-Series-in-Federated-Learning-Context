@@ -46,7 +46,7 @@ class TrendExtractor(BaseEstimator, TransformerMixin):
             # with a logistic growth trend, we need to provide information about the capacity (maximum limit) that the time series is expected to approach as it grows
             self.train_cap = max(newX.y.values)
             newX['cap'] = self.train_cap
-
+            # print(self.train_cap)
         self.trend_model = Prophet(seasonality_mode=self.seasonality_type,
                                    growth=self.trend_type)
         self.trend_model.fit(newX)
