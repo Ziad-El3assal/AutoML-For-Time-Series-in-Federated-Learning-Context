@@ -1,35 +1,41 @@
-# AutoML-For-Time-Series-in-Federated-Learning-Context
+# Federated Learning Project
 
-<pre>Federated learning (FL) has emerged as a promising technique for
-training machine learning models on decentralized data. It allows
-training on data residing on user devices, addressing privacy
-concerns and data security limitations. However, selecting the
-optimal model architecture and hyperparameters for each FL task
-can be a significant challenge.
-</pre>
+This project implements a federated learning system where a server coordinates training among multiple clients. Each client contributes its local model updates to the server, which aggregates them to produce a global model.
 
-• Why Federated Learning?
+## Installation
 
-    Traditional machine learning often requires
-    centralizing data, raising privacy and security
-    concerns. Federated learning offers a solution by
-    training models on distributed data sets, eliminating
-    the need for data transfer. This is particularly
-    advantageous in scenarios where:
-        - User data is privacy-sensitive (e.g., healthcare,finance).
-        - Data is geographically dispersed acrossdevices.
-        - Centralized data storage is impractical or infeasible.
+To install the required dependencies for this project, run the following command:
 
 
-• Project Objectives:
+pip install -r requirements.txt
 
-    This project proposes a novel AutoML framework for
-    federated learning, aiming to automate the process
-    of selecting machine learning algorithms and
-    optimizing hyperparameters. Our framework will:
-        ▪ Leverage meta-learning for efficient algorithm selection on the central server.
-        ▪ Perform hyperparameter tuning on each client device to account for local data variations.
-        ▪ Aggregate optimized hyperparameters from clients to the server for improved model performance.
+This will install all the necessary packages specified in the `requirements.txt` file.
+
+## Running the Server
+
+To start the server, use the following command:
+
+`python server.py`
+
+The server is configured to run with a minimum of 2 clients and only 2 rounds of training. You can adjust these settings in the `server.py` file if needed.
+
+## Running the Clients
+
+Each client should be run separately to connect to the server. Before running the clients, ensure that the server is already running.
+
+To run a client, use the following command:
+
+`python client1.py`
+
+`python client2.py`
 
 
+Each client will create a directory called `output` to save the aggregated features received from the server. These features can be used for feature selection or building forecasted models.
 
+## Feature Extraction
+
+The feature extraction piple-line extract all features from each client that will be aggregated in the server 
+
+## Custom Aggregation Strategy
+
+In the `aggStrategy` module, there is a custom aggregation strategy implemented. This strategy is responsible for aggregating the features received from each client. Scripts for additional feature processing or aggregation can be added to this module as needed.
