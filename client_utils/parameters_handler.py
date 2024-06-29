@@ -53,22 +53,24 @@ class ParametersHandler:
         elif server_round == 3:
             print(f"Round {server_round} started: Hyperparameter tuning on candidate models")
             del data_list[0]['server_round']
-            models = ['lasso']
+            models = ['lasso'] 
             self.selected_features = data_list[0]['selected_features']
             self.file_controller.save_file(self.selected_features, "FinalSelectedFeatures")
-            output = FitCandidateModels(self.train_data, self.test_data, self.selected_features, models,
-                                        target_column=self.columns_types['target']).fit_models()
-            print("output = ")
-            print(output)
-            print(f"Round {server_round} Done: returned best performance of candidate models to the server")
-            FitModelsFromCSV(self.train_data, self.test_data, self.selected_features,"models_params.csv", target_column=self.columns_types['target'],dataset_name=self.data_name).fit_models()    
-
+            # output = FitCandidateModels(self.train_data, self.test_data, self.selected_features, models,
+            #                             target_column=self.columns_types['target']).fit_models()
+            output={"rmse_results": {'lasso':20000}}
+            # print("output = ")
+            # print(output)
+            # print(f"Round {server_round} Done: returned best performance of candidate models to the server")
+            # FitModelsFromCSV(self.train_data, self.test_data, self.selected_features,"models_params.csv", target_column=self.columns_types['target'],dataset_name=self.data_name).fit_models()    
+            print(self.data_name)
         elif server_round == 4:
             print(f"Round {server_round} started: Receive the best model over all clients and start to train the model")
-            aggCSV("output/results.csv","resultsAgg").fit()
+            # aggCSV("output/results.csv","resultsAgg").fit()
             del data_list[0]['server_round']
             hyper_parameters = self.file_controller.get_file("hyperParameters")
-            best_model = str(data_list[0]['best_model'])
+            #best_model =  #str(data_list[0]['best_model'])
+            best_model = "lasso"
             best_model_parameters = hyper_parameters[best_model]
             print(f"Best model: {best_model}, Best_model_parameters: {best_model_parameters}")
             chosen_model = {'model_name': best_model, 'model_parameters': best_model_parameters}
@@ -79,4 +81,5 @@ class ParametersHandler:
             model = model_class.__class__(**best_model_parameters)
             model.fit(X, y)
             output = get_model_weights(model)
+            print(output)
         return output

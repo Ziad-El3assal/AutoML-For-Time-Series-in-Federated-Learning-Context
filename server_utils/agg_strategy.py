@@ -23,6 +23,12 @@ from flwr.server.client_manager import ClientManager
 from flwr.server.client_proxy import ClientProxy
 from flwr.server.strategy import Strategy
 from flwr.server.strategy import fedavg
+
+import os 
+from client_utils.file_controller import FileController
+import time
+import pandas as pd
+
 WARNING_MIN_AVAILABLE_CLIENTS_TOO_LOW = """
 Setting `min_available_clients` lower than `min_fit_clients` or
 `min_evaluate_clients` can cause the server to fail when there are too few clients
@@ -121,6 +127,12 @@ class CustomStrategy(Strategy):
         self.best_round = -1
         self.best_loss = 99999999
         self.max_round = round_number
+        ###### my editss
+        self.data_name=os.path.splitext(os.path.basename(os.getenv('DataPath')))[0]
+        self.file_name = "FLresults"
+        self.file_controller = FileController()
+        self.num_Clients =int(os.getenv('number_clients'))
+        self.FLResult={}
 
     def __repr__(self) -> str:
         """Compute a string representation of the strategy."""
@@ -229,9 +241,14 @@ class CustomStrategy(Strategy):
         if not self.accept_failures and failures:
             return None, {}
         agg_parameters = fl.common.Parameters(tensors=[], tensor_type="dict")
+        print(agg_parameters)
 
         client, fit_res = results[0]
+        print(fit_res)
+        print()
         metrics = fit_res.metrics
+        print(metrics)
+        print()
         aggregator = self.aggregator.createAggregator(server_round=server_round,metrics=metrics)
         if aggregator:
             if server_round >= 4:
@@ -246,7 +263,13 @@ class CustomStrategy(Strategy):
                 agg_parameters = fl.common.Parameters(tensors=[agg_features], tensor_type="features_weights")
 
         if server_round == self.max_round:
+            print(1)
             agg_parameters = self.weights[self.best_round]
+            print()
+            print(results)
+            print()
+            self.FLResult["model"] = fit_res.metrics["model"]
+            self.FLResult["hyperparameters"] = fit_res.metrics["model_hyperparameters"]
         return agg_parameters, {}
 
     def aggregate_evaluate(
@@ -256,6 +279,7 @@ class CustomStrategy(Strategy):
             failures: List[Union[Tuple[ClientProxy, EvaluateRes], BaseException]],
     ) -> Tuple[Optional[float], Dict[str, Scalar]]:
         """Aggregate evaluation losses using weighted average."""
+        print(results)
         if not results:
             return None, {}
         # Do not aggregate if there are failures and failures are not accepted
@@ -278,4 +302,26 @@ class CustomStrategy(Strategy):
         if self.best_loss > loss_aggregated:
             self.best_loss=loss_aggregated
             self.best_round = server_round
+            self.train_aggregated = np.mean([r.metrics["train_loss"] for _, r in results if "train_loss" in r.metrics])
+            self.train_times_aggregated = np.mean([r.metrics["train_time"] for _, r in results if "train_time" in r.metrics])
+        if server_round == self.max_round:
+            print(2)
+            self.FLResult['dataset_name']=self.data_name
+            self.FLResult['num_clients']=self.num_Clients
+            self.FLResult['best_loss']=self.best_loss
+            self.FLResult["train_rmse"]=self.train_aggregated 
+            self.FLResult["time_taken"]=self.train_times_aggregated
+            # FLresult = {
+                    
+            #         # 'hyperparameters': model.get_params(),
+            #         # 'train_rmse': train_rmse,
+            #         # 'test_rmse': test_rmse,
+            #         # 'time_taken': elapsed_time,
+            #         ,
+            #         'num_clients': self.num_Clients,
+            #         'best_loss':self.best_loss
+            #     }
+            # FLresults.append(FLresult)
+            self.file_controller.save_file_append(pd.DataFrame([self.FLResult]), self.file_name, type="csv")
+   
         return loss_aggregated, metrics_aggregated

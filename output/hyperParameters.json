@@ -1,2 +1,2 @@
 
-{"lasso": {"alpha": 0.0015614556496263334, "selection": "cyclic"}}
+{"lasso": {"alpha": 1e-05, "selection": "cyclic"}}

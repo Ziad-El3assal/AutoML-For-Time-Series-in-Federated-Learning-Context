@@ -1,0 +1,2 @@
+model,hyperparameters,dataset_name,num_clients,best_loss,train_rmse,time_taken
+Lasso,"{'alpha': 1e-05, 'copy_X': True, 'fit_intercept': True, 'max_iter': 1000, 'positive': False, 'precompute': False, 'random_state': None, 'selection': 'cyclic', 'tol': 0.0001, 'warm_start': False}",8,4,0.24722252786159515,0.23683345721488708,0.004000425338745117
