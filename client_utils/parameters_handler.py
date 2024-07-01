@@ -28,7 +28,7 @@ class ParametersHandler:
         server_round = data_list[0]['server_round']
         output = {}
         if server_round == 1:
-            if not os.path.exists("TimeSeriesFeatures.json"):
+            if not os.path.exists("./output/TimeSeriesFeatures.json"):
                 print(f"Round {server_round} started: Extract time series features")
                 time_series_features, self.data_length = features_extraction_pipeline(self.preprocessed_train_data, self.columns_types)
                 self.file_controller.save_file(data=time_series_features, file_name="TimeSeriesFeatures")
@@ -37,7 +37,7 @@ class ParametersHandler:
             else:
                 print("Features extracted without running the pipeline")
         elif server_round == 2:
-            if not os.path.exists("SelectedTimeSeriesFeatures.json"):
+            if not os.path.exists("./output/SelectedTimeSeriesFeatures.json"):
                 print(
                     f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
                 del data_list[0]['server_round']
