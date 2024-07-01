@@ -1,7 +1,9 @@
 import json
 import os
 import pandas as pd
-
+import os
+import sys
+sys.path.append("../output")
 class FileController:
     """
     This class is designed to handle client features.
@@ -15,6 +17,7 @@ class FileController:
         if type == "json":
             file_path = os.path.join('./output', f"{file_name}.json")
             self._check_file_availability(file_path)
+            last_features = {}
             with open(file_path, 'r') as file:
                 # Read the file line by line in reverse order
                 lines = file.readlines()
@@ -25,10 +28,12 @@ class FileController:
                         break  # Stop parsing when the last valid JSON object is found
                     except json.JSONDecodeError:
                         # Ignore lines that are not valid JSON
+                        print(f"Invalid JSON: {line.strip()}")
                         pass
             return last_features
         else:
             file_path = os.path.join('./output', f"{file_name}.csv")
+            print(file_path)    
             df = pd.read_csv(file_path)
             return df
 

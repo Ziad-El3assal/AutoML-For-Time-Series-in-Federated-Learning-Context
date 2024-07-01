@@ -28,16 +28,21 @@ class ParametersHandler:
         server_round = data_list[0]['server_round']
         output = {}
         if server_round == 1:
-            if not os.path.exists("TimeSeriesFeatures.json"):
+            if not os.path.exists("./output/TimeSeriesFeatures.json"):
                 print(f"Round {server_round} started: Extract time series features")
                 time_series_features, self.data_length = features_extraction_pipeline(self.preprocessed_train_data, self.columns_types)
+                self.file_controller.save_file(data=self.data_length, file_name="DataLength")
                 self.file_controller.save_file(data=time_series_features, file_name="TimeSeriesFeatures")
-                output = time_series_features
+                output = self.file_controller.get_file("TimeSeriesFeatures")
                 print(f"Round {server_round} Done: Extracted time series features and returned to the server")
             else:
-                print("Features extracted without running the pipeline")
+                print(f"Round {server_round} started: Extract time series features")
+                self.data_length = self.file_controller.get_file("DataLength")
+                output=self.file_controller.get_file("TimeSeriesFeatures")
+                print(f"Round {server_round} Done: Extracted time series features and returned to the server")
+                
         elif server_round == 2:
-            if not os.path.exists("SelectedTimeSeriesFeatures.json"):
+            if not os.path.exists("./output/SelectedTimeSeriesFeatures.json") or not os.path.exists("./output/train_data.csv") or not os.path.exists("./output/test_data.csv") or not os.path.exists("./output/feature_importance.json"):
                 print(
                     f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
                 del data_list[0]['server_round']
@@ -51,11 +56,19 @@ class ParametersHandler:
                 self.file_controller.save_file(self.test_data, "test_data", "csv")
                 feature_importance = FeatureImportanceExtraction(self.train_data,
                                                                 target_column=self.columns_types['target'])
+                self.file_controller.save_file(feature_importance.extract_feature_importance(), "feature_importance")
                 output = feature_importance.extract_feature_importance()
                 print(
                     f"Round {server_round} Done: Applied feature engineering/Feature importance and returned to the server")
             else:
-                print("Feature importance extracted without running the pipeline")
+                print(
+                    f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
+                self.file_controller.save_file(data_list[0], "SelectedTimeSeriesFeatures")
+                self.train_data = self.file_controller.get_file("train_data", "csv")
+                self.test_data = self.file_controller.get_file("test_data", "csv")
+                output=self.file_controller.get_file("feature_importance",'json')
+                print(
+                    f"Round {server_round} Done: Applied feature engineering/Feature importance and returned to the server")
         elif server_round == 3:
             print(f"Round {server_round} started: Hyperparameter tuning on candidate models")
             del data_list[0]['server_round']
