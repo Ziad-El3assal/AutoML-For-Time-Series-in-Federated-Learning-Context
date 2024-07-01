@@ -6,12 +6,14 @@ from client_utils.read_preprocess_data import ReadPreprocessData
 from client_utils.split_data import SplitData
 from client_utils.ModelEnum import ModelEnum
 import pickle
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error,mean_squared_error
 from client_utils.utils import (get_model_weights, set_model_weights, parameters_to_weights,
                                 weights_to_parameters, get_best_model)
 import pandas as pd
 from client_utils.split_data import SplitData
 import sys
+import time
+import numpy as np 
 
 class FlowerClient(fl.client.Client):
     def __init__(self, cid, server_address, server_port, dataset_path):
@@ -83,7 +85,16 @@ class FlowerClient(fl.client.Client):
             self.model = get_best_model()
             metrics["model"] = str(self.model.__class__.__name__)
             self.model = set_model_weights(self.model, weights)
-            self.model.fit(X, y)
+            start_time = time.time()
+            self.model.fit(X, y) # why  fit here ? 
+            elapsed_time = time.time() - start_time
+            y_train_pred = self.model.predict(X)
+            train_rmse = np.sqrt(mean_squared_error(y, y_train_pred))
+            # self.train_loss=train_rmse # tried self.train_loss to use it at evaluate but gave me an error
+            # self.train_time=elapsed_time
+            metrics["train_loss"]=train_rmse
+            metrics["train_time"]=elapsed_time
+            metrics["model_hyperparameters"] = str(self.model.get_params())
             with open(f'model_{self.cid}.pkl', 'wb') as model_file:
                 pickle.dump(self.model, model_file)
             parameters = get_model_weights(self.model)
@@ -99,6 +110,7 @@ class FlowerClient(fl.client.Client):
         return fit_res
 
     def evaluate(self, parameters):
+        metrics={}
         tensor_type = parameters.parameters.tensor_type
         if tensor_type == "xgboost_weights":
             self.model = get_best_model()
@@ -115,7 +127,7 @@ class FlowerClient(fl.client.Client):
 
             # Make predictions
             y_pred = self.model.predict(X_test)
-            loss = mean_absolute_error(y_test, y_pred)
+            loss = mean_squared_error(y_test, y_pred)
             print(loss)
         else:
             test_data = self.file_controller.get_file("test_data", "csv")
@@ -129,13 +141,18 @@ class FlowerClient(fl.client.Client):
                                        target_column=self.columns_types['target']).x_y_split()
             weights = parameters_to_weights(parameters)
             model = get_best_model()
-            model.fit(X, y)
+            start_time = time.time()
+            model.fit(X, y) # why fit during evaluation ?
+            elapsed_time = time.time() - start_time
             model = set_model_weights(model, weights)
             y_pred = model.predict(X_test)
-            loss = mean_absolute_error(y_test, y_pred)
+            train_loss= np.sqrt(mean_squared_error(y, model.predict(X)))
+            loss = np.sqrt(mean_squared_error(y_test, y_pred))
             print(loss)
+            metrics["train_loss"]=train_loss
+            metrics["train_time"]=elapsed_time
         status = fl.common.Status(code=fl.common.Code.OK, message="done")
-        return fl.common.EvaluateRes(loss=loss, num_examples=len(X_test), metrics={}, status=status)
+        return fl.common.EvaluateRes(loss=loss, num_examples=len(X_test), metrics=metrics, status=status)
 
 if __name__ == "__main__":
     #--------- server configs --------------

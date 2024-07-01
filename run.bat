@@ -16,16 +16,31 @@ call conda activate flowerTutorial
 
 REM Run dataSetspliter.py with the given arguments
 python dataSetspliter.py %number_clients% %DataPath%
-timeout /t 15 /nobreak
+timeout /t 2 /nobreak
 
 
-if errorlevel 1 (
-    echo Error running dataSetspliter.py
-    exit /b 1
+@REM if errorlevel 1 (
+@REM     echo Error running dataSetspliter.py
+@REM     exit /b 1
+@REM )
+REM Run the server.py script in a new command prompt and close it after it is done
+
+@echo off
+setlocal
+#function that get PID and kill it
+
+
+
+REM Start the server and get its PID
+start "SERVER" cmd /k "python server.py %number_clients% & taskkill /f /im cmd.exe"
+timeout /t 5 /nobreak
+
+for /f "tokens=2 " %%a in ('tasklist /fi "WindowTitle eq SERVER*"') do (
+    set "server_pid=%%a"
 )
-
-start "SERVER" cmd /k python server.py %number_clients%
-timeout /t 10 /nobreak
+@echo on
+echo PID  %server_pid%
+@echo off
 
 
 REM Loop through the number of clients and run client.py for each one in a new command prompt, activating the flowerTutorial environment
@@ -34,6 +49,17 @@ for /L %%i in (1,1,%number_clients%) do (
     echo python client.py %%i %file_path%
     call conda activate flowerTutorial
     start "Client %%i" cmd /k "python client.py %%i Data\split_%%i.csv"
+)
+
+
+:loop
+tasklist | find " %server_pid% " >nul
+if not errorlevel 1  (
+    timeout /t 10 >nul
+    @echo on
+    echo Server is still running
+    @echo off
+    goto :loop
 )
 
 endlocal

@@ -65,6 +65,8 @@ class ReadPreprocessData:
         
         self.data.dropna(inplace=True)
 
+        self.data.dropna(inplace=True)    
+
     def detect_columns_types(self):
         num_samples = len(self.data)
         log_num_samples = log(num_samples)

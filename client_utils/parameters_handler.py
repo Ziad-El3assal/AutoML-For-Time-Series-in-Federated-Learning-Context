@@ -7,6 +7,9 @@ from client_utils.file_controller import FileController
 from client_utils.split_data import SplitData
 from client_utils.ModelEnum import ModelEnum
 from client_utils.utils import get_model_weights
+from client_utils.fitModelFromCSV import FitModelsFromCSV
+from client_utils.aggFunc import aggCSV
+import os
 
 class ParametersHandler:
     def __init__(self, preprocessed_train_data, preprocessed_test_data, columns_types, dataset_type):
@@ -19,48 +22,62 @@ class ParametersHandler:
         self.data_length = None
         self.selected_features = []
         self.modelEnum = ModelEnum
+        self.data_name=os.path.splitext(os.path.basename(os.getenv('DataPath')))[0]
 
     def get_output(self, parameters, data_list):
         server_round = data_list[0]['server_round']
         output = {}
         if server_round == 1:
-            print(f"Round {server_round} started: Extract time series features")
-            time_series_features, self.data_length = features_extraction_pipeline(self.preprocessed_train_data, self.columns_types)
-            self.file_controller.save_file(data=time_series_features, file_name="TimeSeriesFeatures")
-            output = time_series_features
-            print(f"Round {server_round} Done: Extracted time series features and returned to the server")
+            if not os.path.exists("TimeSeriesFeatures.json"):
+                print(f"Round {server_round} started: Extract time series features")
+                time_series_features, self.data_length = features_extraction_pipeline(self.preprocessed_train_data, self.columns_types)
+                self.file_controller.save_file(data=time_series_features, file_name="TimeSeriesFeatures")
+                output = time_series_features
+                print(f"Round {server_round} Done: Extracted time series features and returned to the server")
+            else:
+                print("Features extracted without running the pipeline")
         elif server_round == 2:
-            print(
-                f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
-            del data_list[0]['server_round']
-            self.file_controller.save_file(data_list[0], "SelectedTimeSeriesFeatures")
-            pipeline = FeaturesEngineeringPipeline(features=data_list[0], columns_types=self.columns_types)
-            # Fit and transform the train data
-            self.train_data = pipeline.fit_transform(self.preprocessed_train_data)
-            # Transform the test data
-            self.test_data = pipeline.transform(self.preprocessed_test_data)
-            self.file_controller.save_file(self.train_data, "train_data", "csv")
-            self.file_controller.save_file(self.test_data, "test_data", "csv")
-            feature_importance = FeatureImportanceExtraction(self.train_data,
-                                                             target_column=self.columns_types['target'])
-            output = feature_importance.extract_feature_importance()
-            print(
-                f"Round {server_round} Done: Applied feature engineering/Feature importance and returned to the server")
+            if not os.path.exists("SelectedTimeSeriesFeatures.json"):
+                print(
+                    f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
+                del data_list[0]['server_round']
+                self.file_controller.save_file(data_list[0], "SelectedTimeSeriesFeatures")
+                pipeline = FeaturesEngineeringPipeline(features=data_list[0], columns_types=self.columns_types)
+                # Fit and transform the train data
+                self.train_data = pipeline.fit_transform(self.preprocessed_train_data)
+                # Transform the test data
+                self.test_data = pipeline.transform(self.preprocessed_test_data)
+                self.file_controller.save_file(self.train_data, "train_data", "csv")
+                self.file_controller.save_file(self.test_data, "test_data", "csv")
+                feature_importance = FeatureImportanceExtraction(self.train_data,
+                                                                target_column=self.columns_types['target'])
+                output = feature_importance.extract_feature_importance()
+                print(
+                    f"Round {server_round} Done: Applied feature engineering/Feature importance and returned to the server")
+            else:
+                print("Feature importance extracted without running the pipeline")
         elif server_round == 3:
             print(f"Round {server_round} started: Hyperparameter tuning on candidate models")
             del data_list[0]['server_round']
-            models = ['lasso']
+            models = ['lasso'] 
             self.selected_features = data_list[0]['selected_features']
             self.file_controller.save_file(self.selected_features, "FinalSelectedFeatures")
-            output = FitCandidateModels(self.train_data, self.test_data, self.selected_features, models,
-                                        target_column=self.columns_types['target']).fit_models()
-            print(f"Round {server_round} Done: returned best performance of candidate models to the server")
+            # output = FitCandidateModels(self.train_data, self.test_data, self.selected_features, models,
+            #                             target_column=self.columns_types['target']).fit_models()
+            output={"rmse_results": {'lasso':20000}}
+            # print("output = ")
+            # print(output)
+            # print(f"Round {server_round} Done: returned best performance of candidate models to the server")
+            # FitModelsFromCSV(self.train_data, self.test_data, self.selected_features,"models_params.csv", target_column=self.columns_types['target'],dataset_name=self.data_name).fit_models()    
+            print(self.data_name)
         elif server_round == 4:
             print(f"Round {server_round} started: Receive the best model over all clients and start to train the model")
+            # aggCSV("output/results.csv","resultsAgg").fit()
             del data_list[0]['server_round']
-            hyper_parameters = self.file_controller.get_file("hyperParameters")
-            best_model = str(data_list[0]['best_model'])
-            best_model_parameters = hyper_parameters[best_model]
+            Data = self.file_controller.get_file("hyperParameters")
+            #best_model =  #str(data_list[0]['best_model'])
+            best_model = Data['model_name']
+            best_model_parameters = Data['HP']
             print(f"Best model: {best_model}, Best_model_parameters: {best_model_parameters}")
             chosen_model = {'model_name': best_model, 'model_parameters': best_model_parameters}
             self.file_controller.save_file(chosen_model, "best_model")
@@ -70,4 +87,5 @@ class ParametersHandler:
             model = model_class.__class__(**best_model_parameters)
             model.fit(X, y)
             output = get_model_weights(model)
+            print(output)
         return output
