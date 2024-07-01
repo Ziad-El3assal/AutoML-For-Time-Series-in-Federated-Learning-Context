@@ -37,4 +37,14 @@ can be a significant challenge.
 run.bat number_clients Dataset_path
 ```
 
+## Building The Knowledge Base
+now to build the knowledge base all what you need:
+- Put all the datasets u want to run the training on on a directory.
+- Choose the models u want to train at the head of the run.py file -Make sure  it's compatible with the ModelEnum Class.
+- run the run.py file in power shell or and command prompt except CMD -very important the script depends on closing all the running cmds.
+    
+    ```
+    python run.py <Dataset_dir> <number_of_client>
+    ```
+`There might be some data that is not compatoble with the code -there ara a lot of variation- so if an error occured in one of the clients terminal all what you need to do  is t o close them all manuallly and it will continue.`
 
