@@ -62,6 +62,8 @@ class ReadPreprocessData:
 
         for col in self.numerical_columns + [self.columns_types["target"]]:
             self.data[col] = self.data[col].interpolate(method='linear')
+        
+        self.data.dropna(inplace=True)
 
         self.data.dropna(inplace=True)    
 

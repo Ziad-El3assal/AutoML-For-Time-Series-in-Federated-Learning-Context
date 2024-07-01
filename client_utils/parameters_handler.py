@@ -42,7 +42,10 @@ class ParametersHandler:
                 print(f"Round {server_round} Done: Extracted time series features and returned to the server")
                 
         elif server_round == 2:
+
             if not os.path.exists("./output/SelectedTimeSeriesFeatures.json") or not os.path.exists("./output/train_data.csv") or not os.path.exists("./output/test_data.csv") or not os.path.exists("./output/feature_importance.json"):
+
+
                 print(
                     f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
                 del data_list[0]['server_round']
