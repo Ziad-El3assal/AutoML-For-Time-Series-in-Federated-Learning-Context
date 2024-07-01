@@ -6,7 +6,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), './output'))
 import json
 from client_utils.ModelEnum import ModelEnum
 import pandas as pd
-models=['ELASTICNETCV',  'XGBOOST_REGRESSOR']
+models=['ELASTICNETCV',  'LASSO','MLP_REGRESSOR']
 
 def HP_Generator(Parameters_DICT):
     """
@@ -49,12 +49,17 @@ if __name__ =='__main__' :
         dataset=os.path.join(root_dir, data)
         print("Dataset: ", dataset)
         for model in models:
+            
             cModel = ModelEnum.get_model_data(model)
             model_name = model
             hyperparameters = HP_Generator(cModel[1])
             print("Model: ", model_name)
-
             for hyperparameter in hyperparameters:
+                #########
+                #########``
+                print("Data", data)
+                print("Model: ", model_name)
+                print("Hyperparameters: ", hyperparameter)
                 print("Hyperparameters: ", hyperparameter)
                 toWrite={"model_name":model_name, "HP":hyperparameter}
                 with open('./output/hyperParameters.json', 'w') as f:
