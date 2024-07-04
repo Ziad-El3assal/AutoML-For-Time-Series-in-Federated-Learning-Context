@@ -153,6 +153,7 @@ class CustomStrategy(Strategy):
             self, client_manager: ClientManager
     ) -> Optional[Parameters]:
         """Initialize global model parameters."""
+        self.startTime = time.time()
         initial_parameters = self.initial_parameters
         self.initial_parameters = None  # Don't keep initial parameters in memory
         return initial_parameters
@@ -310,7 +311,8 @@ class CustomStrategy(Strategy):
             self.FLResult['num_clients']=self.num_Clients
             self.FLResult['best_loss']=self.best_loss
             self.FLResult["train_rmse"]=self.train_aggregated 
-            self.FLResult["time_taken"]=self.train_times_aggregated
+            # self.FLResult["time_taken"]=self.train_times_aggregated
+            self.FLResult["time_taken"] = time.time()-self.startTime
             # FLresult = {
                     
             #         # 'hyperparameters': model.get_params(),
