@@ -8,7 +8,7 @@ import numpy as np
 class ModelEnum(Enum):
     LASSO = (
         Lasso(random_state=42),
-        {'alpha': np.logspace(np.log10(1e-5), np.log10(2), num=30), 'selection': ['cyclic', 'random']}
+        {'alpha': np.logspace(np.log10(1e-5), np.log10(2), num=15), 'selection': ['cyclic', 'random']}
     )
     SVR = (
         SVR(),

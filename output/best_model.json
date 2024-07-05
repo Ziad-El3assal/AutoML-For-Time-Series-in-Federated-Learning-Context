@@ -1,2 +1,2 @@
 
-{"model_name": "lasso", "model_parameters": {"alpha": 1e-05, "selection": "cyclic"}}
+{"model_name": "LASSO", "model_parameters": {"alpha": 2.39136021537497e-05, "selection": "random"}}

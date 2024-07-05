@@ -1,3 +1,4 @@
+##check records
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), './client_utils'))
@@ -6,7 +7,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), './output'))
 import json
 from client_utils.ModelEnum import ModelEnum
 import pandas as pd
-models=['ELASTICNETCV',  'LASSO','MLP_REGRESSOR']
+models=['LASSO']
 
 def HP_Generator(Parameters_DICT):
     """
@@ -26,13 +27,18 @@ def HP_Generator(Parameters_DICT):
                 yield from Recurssive_HP_Generator(Parameters_DICT, n, i+1, HP.copy())
     HP = {}
     yield from Recurssive_HP_Generator(Parameters_DICT, n, 0, HP)            
-        
-        
-if __name__ =='__main__' :
-    root_dir=sys.argv[1]
-    nCleints=sys.argv[2]
-    #for DataSet in os.listdir(root_dir):
-        
+
+if __name__ == '__main__':
+    root_dir = sys.argv[1]
+    nClients = sys.argv[2]
+    processed_datasets = set()
+
+    #load processed datasets list 
+    processed_datasets_file = './output/processed_datasets.txt'
+    if os.path.exists(processed_datasets_file):
+        with open(processed_datasets_file, 'r') as f:
+            processed_datasets = set(f.read().strip().split('\n'))     #read ds as set
+
     for data in os.listdir(root_dir):
         if os.path.exists("./output/TimeSeriesFeatures.json"):
             print("removing TimeSeriesFeatures")
@@ -46,10 +52,16 @@ if __name__ =='__main__' :
         if os.path.exists("./output/test_data.csv"):
             print("removing test_data")
             os.remove("./output/test_data.csv")
-        dataset=os.path.join(root_dir, data)
+        dataset = os.path.join(root_dir, data)
+        
+        #skip dataset if already processed
+        if data in processed_datasets:
+            print(f"Skipping dataset {data} as its already processed.")
+            continue
+        
+        #if its not, process it
         print("Dataset: ", dataset)
         for model in models:
-            
             cModel = ModelEnum.get_model_data(model)
             model_name = model
             hyperparameters = HP_Generator(cModel[1])
@@ -65,12 +77,16 @@ if __name__ =='__main__' :
                 with open('./output/hyperParameters.json', 'w') as f:
                     json.dump(toWrite, f)
                 sys.stdout.flush()
-                os.system('run.bat '+nCleints+' '+dataset)
+                os.system('run.bat '+nClients+' '+dataset)  #nCleints
                 sys.stdout.flush()
                 
-                    
-                    
-                    
+        #after processing a dataset, record it as processed
+        processed_datasets.add(data)
+        
+        #write updated list of processed datasets to file
+        with open(processed_datasets_file, 'w') as f:
+            f.write('\n'.join(processed_datasets))
+
                 
             
             

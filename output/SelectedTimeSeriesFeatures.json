@@ -1,2 +1,2 @@
 
-{"Target": {"optimal_lags": 9, "stationary": 0, "seasonality": [0.003087285994948078, 0.000280662363177098, 0.0028066236317709796]}}
+{"Target": {"optimal_lags": 7, "stationary": 1, "seasonality": [0.00016079755587715066, 0.003055153561665863]}, "server_round": 2}

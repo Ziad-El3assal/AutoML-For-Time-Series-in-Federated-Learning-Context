@@ -12,7 +12,7 @@ set number_clients=%1
 set DataPath=%2
 
 REM Activate the flowerTutorial environment for the data split step
-call conda activate flowerTutorial
+call conda activate flower
 
 REM Run dataSetspliter.py with the given arguments
 python dataSetspliter.py %number_clients% %DataPath%
@@ -47,7 +47,7 @@ REM Loop through the number of clients and run client.py for each one in a new c
 for /L %%i in (1,1,%number_clients%) do (
     set "file_path=Data\split_%%i.csv"
     echo python client.py %%i %file_path%
-    call conda activate flowerTutorial
+    call conda activate flower
     start "Client %%i" cmd /k "python client.py %%i Data\split_%%i.csv"
 )
 
