@@ -12,7 +12,7 @@ from client_utils.aggFunc import aggCSV
 import os
 
 class ParametersHandler:
-    def __init__(self, preprocessed_train_data, preprocessed_test_data, columns_types, dataset_type):
+    def __init__(self, preprocessed_train_data, preprocessed_test_data, columns_types, dataset_type, client_id):
         self.preprocessed_train_data = preprocessed_train_data
         self.preprocessed_test_data = preprocessed_test_data
         self.test_data = None
@@ -23,28 +23,30 @@ class ParametersHandler:
         self.selected_features = []
         self.modelEnum = ModelEnum
         self.data_name=os.path.splitext(os.path.basename(os.getenv('DataPath')))[0]
+        self.client_id=str(client_id)
 
     def get_output(self, parameters, data_list):
         server_round = data_list[0]['server_round']
         output = {}
         if server_round == 1:
-            if not os.path.exists("./output/TimeSeriesFeatures.json"):
+            # if not os.path.exists("./output/TimeSeriesFeatures_"+self.client_id+".json"):
+            if True:
                 print(f"Round {server_round} started: Extract time series features")
                 time_series_features, self.data_length = features_extraction_pipeline(self.preprocessed_train_data, self.columns_types)
-                self.file_controller.save_file(data=self.data_length, file_name="DataLength")
-                self.file_controller.save_file(data=time_series_features, file_name="TimeSeriesFeatures")
-                output = self.file_controller.get_file("TimeSeriesFeatures")
+                self.file_controller.save_file(data=self.data_length, file_name="DataLength_"+self.client_id)
+                self.file_controller.save_file(data=time_series_features, file_name="TimeSeriesFeatures_"+self.client_id)
+                output = self.file_controller.get_file("TimeSeriesFeatures_"+self.client_id)
                 print(f"Round {server_round} Done: Extracted time series features and returned to the server")
             else:
                 print(f"Round {server_round} started: Extract time series features")
-                self.data_length = self.file_controller.get_file("DataLength")
-                output=self.file_controller.get_file("TimeSeriesFeatures")
+                self.data_length = self.file_controller.get_file("DataLength_"+self.client_id)
+                output=self.file_controller.get_file("TimeSeriesFeatures_"+self.client_id)
                 print(f"Round {server_round} Done: Extracted time series features and returned to the server")
                 
         elif server_round == 2:
 
-            if not os.path.exists("./output/SelectedTimeSeriesFeatures.json") or not os.path.exists("./output/train_data.csv") or not os.path.exists("./output/test_data.csv") or not os.path.exists("./output/feature_importance.json"):
-
+            # if not os.path.exists("./output/SelectedTimeSeriesFeatures.json") or not os.path.exists("./output/train_data_"+self.client_id+".csv") or not os.path.exists("./output/test_data_"+self.client_id+".csv") or not os.path.exists("./output/feature_importance.json"):
+            if True:
 
                 print(
                     f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
@@ -55,8 +57,8 @@ class ParametersHandler:
                 self.train_data = pipeline.fit_transform(self.preprocessed_train_data)
                 # Transform the test data
                 self.test_data = pipeline.transform(self.preprocessed_test_data)
-                self.file_controller.save_file(self.train_data, "train_data", "csv")
-                self.file_controller.save_file(self.test_data, "test_data", "csv")
+                self.file_controller.save_file(self.train_data, "train_data_"+self.client_id, "csv")
+                self.file_controller.save_file(self.test_data, "test_data_"+self.client_id, "csv")
                 feature_importance = FeatureImportanceExtraction(self.train_data,
                                                                 target_column=self.columns_types['target'])
                 self.file_controller.save_file(feature_importance.extract_feature_importance(), "feature_importance")
@@ -67,8 +69,8 @@ class ParametersHandler:
                 print(
                     f"Round {server_round} started: Feature engineering on selected time series features and Extract feature importance")
                 self.file_controller.save_file(data_list[0], "SelectedTimeSeriesFeatures")
-                self.train_data = self.file_controller.get_file("train_data", "csv")
-                self.test_data = self.file_controller.get_file("test_data", "csv")
+                self.train_data = self.file_controller.get_file("train_data_"+self.client_id, "csv")
+                self.test_data = self.file_controller.get_file("test_data_"+self.client_id, "csv")
                 output=self.file_controller.get_file("feature_importance",'json')
                 print(
                     f"Round {server_round} Done: Applied feature engineering/Feature importance and returned to the server")
