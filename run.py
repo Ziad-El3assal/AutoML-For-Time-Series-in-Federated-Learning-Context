@@ -1,5 +1,6 @@
 import sys
 import os
+import glob
 sys.path.append(os.path.join(os.path.dirname(__file__), './client_utils'))
 
 sys.path.append(os.path.join(os.path.dirname(__file__), './output'))
@@ -53,19 +54,42 @@ if __name__ =='__main__' :
     #for DataSet in os.listdir(root_dir):
         
     for data in os.listdir(root_dir):
-        if os.path.exists("./output/TimeSeriesFeatures.json"):
-            print("removing TimeSeriesFeatures")
-            os.remove("./output/TimeSeriesFeatures.json")
-        if os.path.exists("./output/SelectedTimeSeriesFeatures.json"):
-            print("removing SelectedTimeSeriesFeatures")
-            os.remove("./output/SelectedTimeSeriesFeatures.json")
-        if os.path.exists("./output/train_data.csv"):
-            print("removing train_data")
-            os.remove("./output/train_data.csv")
-        if os.path.exists("./output/test_data.csv"):
-            print("removing test_data")
-            os.remove("./output/test_data.csv")
-        dataset=os.path.join(root_dir, data)
+        # if os.path.exists("./output/TimeSeriesFeatures.json"):
+        #     print("removing TimeSeriesFeatures")
+        #     os.remove("./output/TimeSeriesFeatures.json")
+        # if os.path.exists("./output/SelectedTimeSeriesFeatures.json"):
+        #     print("removing SelectedTimeSeriesFeatures")
+        #     os.remove("./output/SelectedTimeSeriesFeatures.json")
+        # if os.path.exists("./output/train_data.csv"):
+        #     print("removing train_data")
+        #     os.remove("./output/train_data.csv")
+        # if os.path.exists("./output/test_data.csv"):
+        #     print("removing test_data")
+        #     os.remove("./output/test_data.csv")
+        # dataset=os.path.join(root_dir, data)
+        # print("Dataset: ", dataset)
+       
+        # Remove files starting with "TimeSeriesFeatures"
+        for file in glob.glob("./output/TimeSeriesFeatures*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
+        # Remove files starting with "SelectedTimeSeriesFeatures"
+        for file in glob.glob("./output/SelectedTimeSeriesFeatures*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
+        # Remove files starting with "train_data"
+        for file in glob.glob("./output/train_data*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
+        # Remove files starting with "test_data"
+        for file in glob.glob("./output/test_data*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
+        dataset = os.path.join(root_dir, data)
         print("Dataset: ", dataset)
         for model in models:
             

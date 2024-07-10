@@ -33,7 +33,7 @@ class FlowerClient(fl.client.Client):
         self.preprocessed_test_data = read_preprocess_data.transform(self.raw_test_data)
         self.parameters_handler = ParametersHandler(preprocessed_train_data=self.preprocessed_train_data,
                                                     preprocessed_test_data=self.preprocessed_test_data,
-                                                    columns_types=self.columns_types, dataset_type=self.dataset_type)
+                                                    columns_types=self.columns_types, dataset_type=self.dataset_type,client_id=self.cid)
                                                     
         self.file_controller = FileController()
         self.modelEnum = ModelEnum
@@ -162,6 +162,7 @@ class FlowerClient(fl.client.Client):
             y_pred = model.predict(X_test)
             train_loss= np.sqrt(mean_squared_error(y, model.predict(X)))
             loss = np.sqrt(mean_squared_error(y_test, y_pred))
+            print("loss = ")
             print(loss)
             metrics["train_loss"]=train_loss
             # metrics["train_time"]=elapsed_time
@@ -177,7 +178,7 @@ if __name__ == "__main__":
     data_path = sys.argv[2]
     print(data_path)
     #----------------------------------------
-    cid="clinet_"+str(sys.argv[1])
+    cid="client_"+str(sys.argv[1])
     print(cid)
     
     client_server_address = "localhost"  # Change to actual server address
