@@ -1,5 +1,6 @@
 
 
+
 import pandas as pd 
 import sys
 import os
@@ -35,7 +36,7 @@ def create_Parttioned_files(data_path, nclients):
         os.mkdir("Data")
         
     for i, partition in enumerate(partitions):
-        partition.to_csv(f"Data\split_{i + 1}.csv", index=False)
+        partition.to_csv(f"Data/split_{i + 1}.csv", index=False)
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
@@ -43,5 +44,6 @@ if __name__ == "__main__":
         sys.exit(1) 
     data_path = sys.argv[2]
     nclients = int(sys.argv[1])
+    print(data_path)
     create_Parttioned_files(data_path, nclients)
     print(f"Data partitioned into {nclients} parts and saved in the Data folder.")

@@ -20,6 +20,8 @@ class FlowerClient(fl.client.Client):
         self.cid = cid
         self.server_address = server_address
         self.server_port = server_port
+        
+        print(dataset_path)
         self.raw_data = pd.read_csv(dataset_path)
         
         self.raw_data.rename({'timestamp':'Timestamp', 'value':'Target'},inplace=True, axis=1)
@@ -31,11 +33,14 @@ class FlowerClient(fl.client.Client):
         self.preprocessed_test_data = read_preprocess_data.transform(self.raw_test_data)
         self.parameters_handler = ParametersHandler(preprocessed_train_data=self.preprocessed_train_data,
                                                     preprocessed_test_data=self.preprocessed_test_data,
-                                                    columns_types=self.columns_types, dataset_type=self.dataset_type)
+                                                    columns_types=self.columns_types, dataset_type=self.dataset_type,client_id=self.cid)
+                                                    
         self.file_controller = FileController()
         self.modelEnum = ModelEnum
         self.selected_features = []
         self.model = None
+        # test_data= self.preprocessed_train_data
+        # train_data = self.preprocessed_test_data
         super().__init__()  # Initialize the parent class
 
     def get_parameters(self, config):
@@ -73,18 +78,20 @@ class FlowerClient(fl.client.Client):
             with open(f'model_{self.cid}.pkl', 'wb') as model_file:
                 pickle.dump(self.model, model_file)
             output = get_model_weights(self.model)
-            parameters = fl.common.Parameters(tensors=[output],
+            parameters = fl.common.Parameters(tensors=output,
                                               tensor_type="weights")
+            metrics["model_hyperparameters"] = str(self.model.get_params())
         else:
             weights = parameters_to_weights(parameters)
             selected_features = self.file_controller.get_file(file_name="FinalSelectedFeatures")
-            train_data = self.file_controller.get_file("train_data", "csv")
+            train_data = self.parameters_handler.train_data
             X, y = SplitData(data=train_data,
                              selected_features=selected_features,
                              target_column=self.columns_types['target']).x_y_split()
             self.model = get_best_model()
             metrics["model"] = str(self.model.__class__.__name__)
-            self.model = set_model_weights(self.model, weights)
+            self.model = set_model_weights(self.model, weights) #####################################
+            print(self.model.get_params()) ###############################################
             start_time = time.time()
             self.model.fit(X, y) # why  fit here ? 
             elapsed_time = time.time() - start_time
@@ -119,38 +126,48 @@ class FlowerClient(fl.client.Client):
                 global_model = bytearray(item)
             self.model.load_model(global_model)
             self.model = set_model_weights(self.model, global_model)
-            test_data = self.file_controller.get_file("test_data", "csv")
+            print(self.model.get_params())
+            test_data = self.parameters_handler.test_data
             selected_features = self.file_controller.get_file(file_name="FinalSelectedFeatures")
             X_test, y_test = SplitData(data=test_data,
                                        selected_features=selected_features,
                                        target_column=self.columns_types['target']).x_y_split()
 
             # Make predictions
+            
             y_pred = self.model.predict(X_test)
             loss = mean_squared_error(y_test, y_pred)
+            metrics["model_hyperparameters"] = str(self.model.get_params())
+            metrics['train_loss']=loss
             print(loss)
         else:
-            test_data = self.file_controller.get_file("test_data", "csv")
-            train_data = self.file_controller.get_file("train_data", "csv")
+            test_data = self.parameters_handler.test_data # changed This
+            train_data = self.parameters_handler.train_data
             selected_features = self.file_controller.get_file(file_name="FinalSelectedFeatures")
             X, y = SplitData(data=train_data,
                              selected_features=selected_features,
                              target_column=self.columns_types['target']).x_y_split()
+            
+            print("X :" , train_data)
             X_test, y_test = SplitData(data=test_data,
                                        selected_features=selected_features,
                                        target_column=self.columns_types['target']).x_y_split()
+            print("X_test :" , test_data)
             weights = parameters_to_weights(parameters)
-            model = get_best_model()
-            start_time = time.time()
+            model = get_best_model() 
+            model=set_model_weights(model, weights) ###########################################
+            # print(model.get_params()) ###############################
+            # start_time = time.time()
             model.fit(X, y) # why fit during evaluation ?
-            elapsed_time = time.time() - start_time
-            model = set_model_weights(model, weights)
+            # elapsed_time = time.time() - start_time
+            # model = set_model_weights(model, weights)
             y_pred = model.predict(X_test)
             train_loss= np.sqrt(mean_squared_error(y, model.predict(X)))
             loss = np.sqrt(mean_squared_error(y_test, y_pred))
+            print("loss = ")
             print(loss)
             metrics["train_loss"]=train_loss
-            metrics["train_time"]=elapsed_time
+            # metrics["train_time"]=elapsed_time
         status = fl.common.Status(code=fl.common.Code.OK, message="done")
         return fl.common.EvaluateRes(loss=loss, num_examples=len(X_test), metrics=metrics, status=status)
 
@@ -163,7 +180,7 @@ if __name__ == "__main__":
     data_path = sys.argv[2]
     print(data_path)
     #----------------------------------------
-    cid="clinet_"+str(sys.argv[1])
+    cid="client_"+str(sys.argv[1])
     print(cid)
     
     client_server_address = "localhost"  # Change to actual server address

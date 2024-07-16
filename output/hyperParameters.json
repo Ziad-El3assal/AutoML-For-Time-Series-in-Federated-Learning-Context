@@ -1,2 +1,1 @@
-
-{"lasso": {"alpha": 1e-05, "selection": "cyclic"}}
+{"model_name": "XGBOOST_REGRESSOR", "HP": {"learning_rate": 0.1, "reg_lambda": 0.8, "gamma": 0.9, "subsample": 1}}

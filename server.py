@@ -12,6 +12,8 @@ class FlowerServer(fl.server.Server):
 if __name__ == "__main__":
     # Create an instance of your custom strategy
     nclients=int(sys.argv[1])
+    print(nclients,type(nclients))
+    print('='*100)
     round_number = 10
     min_fit_clients = nclients
     min_eval_clients = nclients

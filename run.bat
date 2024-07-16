@@ -31,7 +31,7 @@ setlocal
 
 
 REM Start the server and get its PID
-start "SERVER" /MIN cmd /k "python server.py %number_clients% & taskkill /f /im cmd.exe"
+start "SERVER" /MIN cmd /k "python server.py %number_clients%"
 timeout /t 5 /nobreak
 
 for /f "tokens=2 " %%a in ('tasklist /fi "WindowTitle eq SERVER*"') do (
@@ -50,7 +50,7 @@ for /L %%i in (1,1,%number_clients%) do (
     start "Client %%i" /MIN cmd /k "python client.py %%i Data\split_%%i.csv"
 )
 
-set MaxTime=10  
+set MaxTime=30
 set TimeElapsed=0
 
 :loop

@@ -128,10 +128,16 @@ class CustomStrategy(Strategy):
         self.best_loss = 99999999
         self.max_round = round_number
         ###### my editss
-        self.data_name=os.path.splitext(os.path.basename(os.getenv('DataPath')))[0]
+        print('-'*10)
+        print(os.getenv('DataSetPath'))
+        print(os.getenv('nClients'))
+        print('-'*10)
+
+        self.data_name=os.path.splitext(os.path.basename(os.getenv('DataSetPath')))[0]
+        
         self.file_name = "FLresults"
         self.file_controller = FileController()
-        self.num_Clients =int(os.getenv('number_clients'))
+        self.num_Clients =int(os.getenv('nClients'))
         self.FLResult={}
 
     def __repr__(self) -> str:
@@ -153,6 +159,7 @@ class CustomStrategy(Strategy):
             self, client_manager: ClientManager
     ) -> Optional[Parameters]:
         """Initialize global model parameters."""
+        self.startTime = time.time()
         initial_parameters = self.initial_parameters
         self.initial_parameters = None  # Don't keep initial parameters in memory
         return initial_parameters
@@ -241,14 +248,14 @@ class CustomStrategy(Strategy):
         if not self.accept_failures and failures:
             return None, {}
         agg_parameters = fl.common.Parameters(tensors=[], tensor_type="dict")
-        print(agg_parameters)
+        #print(agg_parameters)
 
         client, fit_res = results[0]
-        print(fit_res)
-        print()
+        #print(fit_res)
+        #print()
         metrics = fit_res.metrics
-        print(metrics)
-        print()
+        #print(metrics)
+        #print()
         aggregator = self.aggregator.createAggregator(server_round=server_round,metrics=metrics)
         if aggregator:
             if server_round >= 4:
@@ -263,11 +270,11 @@ class CustomStrategy(Strategy):
                 agg_parameters = fl.common.Parameters(tensors=[agg_features], tensor_type="features_weights")
 
         if server_round == self.max_round:
-            print(1)
+            #print(1)
             agg_parameters = self.weights[self.best_round]
-            print()
-            print(results)
-            print()
+            #print()
+            #print(results)
+            #print()
             self.FLResult["model"] = fit_res.metrics["model"]
             self.FLResult["hyperparameters"] = fit_res.metrics["model_hyperparameters"]
         return agg_parameters, {}
@@ -279,7 +286,7 @@ class CustomStrategy(Strategy):
             failures: List[Union[Tuple[ClientProxy, EvaluateRes], BaseException]],
     ) -> Tuple[Optional[float], Dict[str, Scalar]]:
         """Aggregate evaluation losses using weighted average."""
-        print(results)
+        #print(results)
         if not results:
             return None, {}
         # Do not aggregate if there are failures and failures are not accepted
@@ -305,12 +312,14 @@ class CustomStrategy(Strategy):
             self.train_aggregated = np.mean([r.metrics["train_loss"] for _, r in results if "train_loss" in r.metrics])
             self.train_times_aggregated = np.mean([r.metrics["train_time"] for _, r in results if "train_time" in r.metrics])
         if server_round == self.max_round:
-            print(2)
+            #print(2)
             self.FLResult['dataset_name']=self.data_name
             self.FLResult['num_clients']=self.num_Clients
             self.FLResult['best_loss']=self.best_loss
-            self.FLResult["train_rmse"]=self.train_aggregated 
-            self.FLResult["time_taken"]=self.train_times_aggregated
+            self.FLResult["train_rmse"]= np.mean([r.metrics["train_loss"] for _, r in results if "train_loss" in r.metrics])
+            print("---------",self.FLResult["train_rmse"])
+            # self.FLResult["time_taken"]=self.train_times_aggregated
+            self.FLResult["time_taken"] = time.time()-self.startTime
             # FLresult = {
                     
             #         # 'hyperparameters': model.get_params(),

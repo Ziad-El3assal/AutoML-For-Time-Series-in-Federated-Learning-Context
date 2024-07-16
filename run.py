@@ -1,12 +1,16 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.dirname(__file__), './client_utils'))
-
+import psutil
 sys.path.append(os.path.join(os.path.dirname(__file__), './output'))
 import json
 from client_utils.ModelEnum import ModelEnum
 import pandas as pd
-models=['ELASTICNETCV',  'LASSO','MLP_REGRESSOR']
+import numpy as np
+import glob
+import time
+import subprocess 
+models=['XGBOOST_REGRESSOR']
 
 def HP_Generator(Parameters_DICT):
     """
@@ -18,7 +22,7 @@ def HP_Generator(Parameters_DICT):
     n=len(Parameters_DICT.keys())
 
     def Recurssive_HP_Generator(Parameters_DICT, n, i, HP):
-        if i==n:
+        if i==n: 
             yield HP
         else:
             for value in Parameters_DICT[list(Parameters_DICT.keys())[i]]:
@@ -31,21 +35,32 @@ def HP_Generator(Parameters_DICT):
 if __name__ =='__main__' :
     root_dir=sys.argv[1]
     nCleints=sys.argv[2]
-    #for DataSet in os.listdir(root_dir):
-        
+    n=1
+    pid = os.getpid()
+
     for data in os.listdir(root_dir):
-        if os.path.exists("./output/TimeSeriesFeatures.json"):
-            print("removing TimeSeriesFeatures")
-            os.remove("./output/TimeSeriesFeatures.json")
-        if os.path.exists("./output/SelectedTimeSeriesFeatures.json"):
-            print("removing SelectedTimeSeriesFeatures")
-            os.remove("./output/SelectedTimeSeriesFeatures.json")
-        if os.path.exists("./output/train_data.csv"):
-            print("removing train_data")
-            os.remove("./output/train_data.csv")
-        if os.path.exists("./output/test_data.csv"):
-            print("removing test_data")
-            os.remove("./output/test_data.csv")
+        if data != '121.csv' and n==1:
+            continue
+        n+=1
+        for file in glob.glob("./output/TimeSeriesFeatures*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
+        # Remove files starting with "SelectedTimeSeriesFeatures"
+        for file in glob.glob("./output/SelectedTimeSeriesFeatures*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
+        # Remove files starting with "train_data"
+        for file in glob.glob("./output/train_data*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
+        # Remove files starting with "test_data"
+        for file in glob.glob("./output/test_data*"):
+            print(f"removing {file}")
+            os.remove(file)
+        
         dataset=os.path.join(root_dir, data)
         print("Dataset: ", dataset)
         for model in models:
@@ -56,17 +71,32 @@ if __name__ =='__main__' :
             print("Model: ", model_name)
             for hyperparameter in hyperparameters:
                 #########
-                #########``
+                #########
                 print("Data", data)
                 print("Model: ", model_name)
-                print("Hyperparameters: ", hyperparameter)
                 print("Hyperparameters: ", hyperparameter)
                 toWrite={"model_name":model_name, "HP":hyperparameter}
                 with open('./output/hyperParameters.json', 'w') as f:
                     json.dump(toWrite, f)
-                sys.stdout.flush()
-                os.system('run.bat '+nCleints+' '+dataset)
-                sys.stdout.flush()
+                #run in flowerTutorial environment
+                command = ["./tst.sh" ,str(nCleints), dataset]
+                subprocess.run(command,timeout=100)
+                #command to kill the process
+                time.sleep(200)
+
+                # this process PID
+                #kill all the python processes except this one
+                for proc in psutil.process_iter(['pid', 'name']):
+                    try:
+                        # Check if the process name is 'python' or 'python3' and if it's not the current process
+                        if proc.info['name'] in ('python', 'python3') and proc.info['pid'] != pid:
+                            print(f"Killing process {proc.info['pid']} ({proc.info['name']})")
+                            proc.kill()
+                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                        pass
+                time.sleep(5)
+
+                
                 
                     
                     

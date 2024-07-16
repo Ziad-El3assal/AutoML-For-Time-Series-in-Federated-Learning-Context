@@ -12,6 +12,8 @@ class SplitData:
         X = self.data.drop(self.target_column, axis=1)
         y = self.data[self.target_column]  # Replace target_column_name with the actual name of your target column
         train_index = int(len(X) * self.train_freq / 1)
+        print(self.selected_features)
+        print(X.columns)
         X = X[self.selected_features]
         X = X.ffill()
         # for one step forecasting
