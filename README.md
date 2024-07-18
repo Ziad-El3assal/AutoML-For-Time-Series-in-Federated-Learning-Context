@@ -35,7 +35,7 @@ can be a significant challenge.
 ```
 pip install requirement.txt
 ```
-
+- Make sure that no one is listning to localhost:5555 as the server will run on this port.
 ### You can run the server using the following command -*Windows*-
 - Rememeber to rename the environment to `flowerTurtorial` to be updated -before puplishing-
 ```batsh
