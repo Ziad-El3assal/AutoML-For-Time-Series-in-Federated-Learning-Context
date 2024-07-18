@@ -1,0 +1,9 @@
+flwr
+scikit-learn
+prophet 
+statsmodels
+scipy
+numpy 
+pandas
+psutils
+glob
