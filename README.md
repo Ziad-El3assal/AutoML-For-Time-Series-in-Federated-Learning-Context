@@ -31,18 +31,26 @@ can be a significant challenge.
         ▪ Perform hyperparameter tuning on each client device to account for local data variations.
         ▪ Aggregate optimized hyperparameters from clients to the server for improved model performance.
 
-### You can run the server using the following command
-- Rememeber to rename the environment to `flowerTurtorial` to be updated -before puplishing-
-```bash
-run.bat number_clients Dataset_path
+### installation
+```
+pip install requirement.txt
 ```
 
+### You can run the server using the following command -*Windows*-
+- Rememeber to rename the environment to `flowerTurtorial` to be updated -before puplishing-
+```batsh
+run.bat number_clients Dataset_path
+```
+### For Linux you can change to LinuxVersion branch -deb-
+```bash
+chmode +x tst/sh
+python3 run.py <Dataset_dir> <number_of_client>
+```
 ## Building The Knowledge Base
 now to build the knowledge base all what you need:
 - Put all the datasets you want to run the training in a directory.
 - Choose the models you want to train at the head of the run.py file -Make sure  it's compatible with the ModelEnum Class.
 - run the run.py file in power shell or and command prompt except CMD -very important the script depends on closing all the running cmds.
-    
     ```
     python run.py <Dataset_dir> <number_of_client>
     ```
