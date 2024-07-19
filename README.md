@@ -1,4 +1,4 @@
-# AutoML-For-Time-Series-in-Federated-Learning-Context
+    # AutoML-For-Time-Series-in-Federated-Learning-Context
 
 <pre>Federated learning (FL) has emerged as a promising technique for
 training machine learning models on decentralized data. It allows
@@ -46,6 +46,27 @@ run.bat number_clients Dataset_path
 chmode +x tst/sh
 python3 run.py <Dataset_dir> <number_of_client>
 ```
+
+## Docker Installation
+
+
+## Building and Running the Project with Docker
+
+Follow these commands to build and run the project:
+
+### Build the Docker Image
+
+```sh
+docker build -t Auto-ML .
+```
+
+### Run the Docker Container
+
+```sh
+docker run -d -p 4000:80 --name DocContainer Auto-ML
+```
+
+
 ## Building The Knowledge Base
 now to build the knowledge base all what you need:
 - Put all the datasets you want to run the training in a directory.
