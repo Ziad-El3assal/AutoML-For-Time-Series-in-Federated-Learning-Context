@@ -1,4 +1,4 @@
-    # AutoML-For-Time-Series-in-Federated-Learning-Context
+# AutoML-For-Time-Series-in-Federated-Learning-Context
 
 <pre>Federated learning (FL) has emerged as a promising technique for
 training machine learning models on decentralized data. It allows
